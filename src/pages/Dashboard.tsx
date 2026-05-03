@@ -9,6 +9,7 @@ import { Badge } from '../components/ui/Badge';
 import styles from './Dashboard.module.css';
 
 interface AlertItem {
+  id: string;
   produtoId: string;
   codigo: string;
   nome: string;
@@ -54,6 +55,7 @@ export function Dashboard() {
         const estoqueCD = estoque.find(e => e.produtoId === p.id && e.local === 'CD');
         const estoqueAtual = estoqueCD?.quantidade ?? 0;
         return {
+          id: p.id,
           produtoId: p.id,
           codigo: p.codigo,
           nome: p.nome,
@@ -99,17 +101,14 @@ export function Dashboard() {
           <StatCard
             label="Total de Produtos"
             value={stats.totalProdutos}
-            variant="info"
           />
           <StatCard
             label="Secos"
             value={stats.secoCount}
-            variant="default"
           />
           <StatCard
             label="Molhados"
             value={stats.molhadoCount}
-            variant="default"
           />
         </section>
 

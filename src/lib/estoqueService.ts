@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Produto, ItemEstoque } from '../store/wmsStore';
+import type { ItemEstoque } from '../store/wmsStore';
 
 
 export async function obterEstoqueCentral() {
