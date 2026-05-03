@@ -87,7 +87,7 @@ export function Login() {
             />
           </div>
 
-          <Button variant="primary" type="submit" disabled={submitting} className={styles.submit}>
+          <Button variant="danger" type="submit" disabled={submitting} className={styles.submit}>
             {submitting ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
