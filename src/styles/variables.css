@@ -1,0 +1,85 @@
+:root {
+  /* Colors */
+  --bg: #F5F4F0;
+  --surface: #FFFFFF;
+  --border: #E0DED8;
+  --text-primary: #1A1917;
+  --text-secondary: #706F6A;
+  --primary: #1C3A4A;
+  --accent: #C97B1A;
+  --success: #2A6049;
+  --danger: #9B3125;
+  --warning: #B8820A;
+
+  /* Semantic colors */
+  --bg-success: #F0F6F4;
+  --bg-danger: #FAF4F2;
+  --bg-warning: #FBF8F1;
+  --bg-info: #F0F5F9;
+
+  /* Typography */
+  --font-ui: 'Roboto Slab', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing (8px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Sizing */
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 72px;
+  --header-height: 64px;
+
+  /* Typography scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  /* Line heights */
+  --lh-tight: 1.25;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.75;
+
+  /* Border radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.12);
+
+  /* Transitions */
+  --transition-fast: 100ms ease;
+  --transition-base: 150ms ease;
+  --transition-slow: 200ms ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1A1917;
+    --surface: #2A2723;
+    --border: #3D3935;
+    --text-primary: #F5F4F0;
+    --text-secondary: #A8A6A0;
+    --bg-success: #0A2F1F;
+    --bg-danger: #3D1A0F;
+    --bg-warning: #3D2D05;
+    --bg-info: #0A1F35;
+  }
+}

@@ -1,0 +1,84 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.filterGroup label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.filterBtn {
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.filterBtn:hover {
+  background-color: var(--surface);
+  border-color: var(--primary);
+}
+
+.filterBtn.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.alerts {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.alertBadge {
+  display: inline-block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 4px;
+  color: white;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.tableContainer {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}

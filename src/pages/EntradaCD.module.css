@@ -1,0 +1,152 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 800px;
+}
+
+.banner {
+  padding: var(--space-4);
+  border-radius: 8px;
+  font-weight: 500;
+  animation: slideDown 300ms ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success {
+  background-color: var(--success);
+  color: white;
+  border: 1px solid var(--success);
+}
+
+.error {
+  background-color: var(--danger);
+  color: white;
+  border: 1px solid var(--danger);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--space-6);
+}
+
+.section h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.linhasContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.linha {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.select,
+.input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: var(--text-sm);
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.select {
+  flex: 1;
+  min-width: 0;
+}
+
+.input {
+  width: 120px;
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(28, 58, 74, 0.1);
+}
+
+.removeBtn {
+  padding: var(--space-2) var(--space-3);
+  background-color: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--danger);
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition-fast);
+}
+
+.removeBtn:hover {
+  background-color: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+.label {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.textarea {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(28, 58, 74, 0.1);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}

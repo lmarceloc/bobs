@@ -1,0 +1,17 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg);
+}
+
+.main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  transition: margin-left var(--transition-base);
+}
+
+.layout[data-sidebar-collapsed="true"] .main {
+  margin-left: var(--sidebar-width-collapsed);
+}
