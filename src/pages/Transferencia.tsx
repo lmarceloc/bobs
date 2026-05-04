@@ -138,9 +138,9 @@ export function Transferencia() {
               <label className={styles.label}>Estoque no CD</label>
               <div className={styles.cdSummary}>
                 <div className={styles.stat}>
-                  <span className={styles.statLabel}>Total CD:</span>
+                  <span className={styles.statLabel}>Produtos no CD:</span>
                   <span className={styles.statValue}>
-                    {Array.from(estoqueCD.values()).reduce((a, b) => a + b, 0)}
+                    {estoqueCD.size}
                   </span>
                 </div>
               </div>

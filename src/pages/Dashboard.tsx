@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { format, parseISO } from 'date-fns';
+import { useMemo, useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useWmsStore } from '../store/wmsStore';
 import { Header } from '../components/layout/Header';
@@ -7,6 +7,8 @@ import { StatCard } from '../components/ui/StatCard';
 import { DataTable } from '../components/ui/DataTable';
 import { Badge } from '../components/ui/Badge';
 import styles from './Dashboard.module.css';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 
 interface AlertItem {
   id: string;
@@ -19,22 +21,9 @@ interface AlertItem {
   diferenca: number;
 }
 
-interface ActivityItem {
-  id: string;
-  tipo: string;
-  produtoCodigo: string;
-  produtoNome: string;
-  quantidade: number;
-  de: string | null;
-  para: string;
-  data: string;
-  usuario: string;
-}
-
 export function Dashboard() {
   const produtos = useWmsStore(s => s.produtos);
   const estoque = useWmsStore(s => s.estoque);
-  const movimentacoes = useWmsStore(s => s.movimentacoes);
 
   const stats = useMemo(() => {
     const totalProdutos = produtos.filter(p => p.ativo).length;
@@ -69,26 +58,18 @@ export function Dashboard() {
       .sort((a, b) => a.diferenca - b.diferenca);
   }, [produtos, estoque]);
 
-  const recentActivity = useMemo((): ActivityItem[] => {
-    return movimentacoes
-      .slice()
-      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
-      .slice(0, 10)
-      .map(mov => {
-        const produto = produtos.find(p => p.id === mov.produtoId);
-        return {
-          id: mov.id,
-          tipo: mov.tipo === 'entrada_cd' ? 'Entrada CD' : 'Transferência',
-          produtoCodigo: produto?.codigo ?? '—',
-          produtoNome: produto?.nome ?? '—',
-          quantidade: mov.quantidade,
-          de: mov.de,
-          para: mov.para,
-          data: mov.data,
-          usuario: mov.usuario,
-        };
-      });
-  }, [movimentacoes, produtos]);
+  const [alertasPageSize, setAlertasPageSize] = useState<number>(10);
+  const [alertasPage, setAlertasPage] = useState(1);
+  const alertasTotalPages = Math.max(1, Math.ceil(alertas.length / alertasPageSize));
+  useEffect(() => {
+    if (alertasPage > alertasTotalPages) setAlertasPage(alertasTotalPages);
+  }, [alertasPage, alertasTotalPages]);
+  const alertasPaginados = useMemo(() => {
+    const start = (alertasPage - 1) * alertasPageSize;
+    return alertas.slice(start, start + alertasPageSize);
+  }, [alertas, alertasPage, alertasPageSize]);
+  const alertasStart = alertas.length === 0 ? 0 : (alertasPage - 1) * alertasPageSize + 1;
+  const alertasEnd = Math.min(alertasPage * alertasPageSize, alertas.length);
 
   return (
     <div className={styles.dashboard}>
@@ -117,79 +98,96 @@ export function Dashboard() {
           {alertas.length === 0 ? (
             <p className={styles.empty}>Todos os produtos estão com estoque adequado.</p>
           ) : (
-            <DataTable<AlertItem>
-              columns={[
-                { key: 'codigo', label: 'Código', className: 'mono', align: 'center' },
-                { key: 'nome', label: 'Produto', align: 'center' },
-                {
-                  key: 'categoria',
-                  label: 'Categoria',
-                  align: 'center',
-                  render: (item) => (
-                    <Badge variant={item.categoria === 'seco' ? 'default' : 'info'}>
-                      {item.categoria}
-                    </Badge>
-                  ),
-                },
-                {
-                  key: 'estoqueAtual',
-                  label: 'Estoque Atual',
-                  className: 'mono',
-                  align: 'center',
-                },
-                {
-                  key: 'estoqueMinimo',
-                  label: 'Mínimo',
-                  className: 'mono',
-                  align: 'center',
-                },
-                {
-                  key: 'diferenca',
-                  label: 'Diferença',
-                  className: 'mono',
-                  align: 'center',
-                  render: (item) => (
-                    <Badge variant="danger">
-                      {item.diferenca}
-                    </Badge>
-                  ),
-                },
-              ]}
-              data={alertas}
-            />
+            <>
+              <DataTable<AlertItem>
+                columns={[
+                  { key: 'codigo', label: 'Código', className: 'mono', align: 'center' },
+                  { key: 'nome', label: 'Produto', align: 'center' },
+                  {
+                    key: 'categoria',
+                    label: 'Categoria',
+                    align: 'center',
+                    render: (item) => (
+                      <Badge variant={item.categoria === 'seco' ? 'default' : 'info'}>
+                        {item.categoria}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    key: 'estoqueAtual',
+                    label: 'Estoque Atual',
+                    className: 'mono',
+                    align: 'center',
+                  },
+                  {
+                    key: 'estoqueMinimo',
+                    label: 'Mínimo',
+                    className: 'mono',
+                    align: 'center',
+                  },
+                  {
+                    key: 'diferenca',
+                    label: 'Diferença',
+                    className: 'mono',
+                    align: 'center',
+                    render: (item) => (
+                      <Badge variant="danger">
+                        {item.diferenca}
+                      </Badge>
+                    ),
+                  },
+                ]}
+                data={alertasPaginados}
+              />
+
+              <div className={styles.pagination}>
+                <div className={styles.pageSize}>
+                  <label htmlFor="alertasPageSize">Itens por página:</label>
+                  <select
+                    id="alertasPageSize"
+                    value={alertasPageSize}
+                    onChange={(e) => {
+                      setAlertasPageSize(Number(e.target.value));
+                      setAlertasPage(1);
+                    }}
+                    className={styles.pageSizeSelect}
+                  >
+                    {PAGE_SIZE_OPTIONS.map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.pageInfo}>
+                  {alertasStart}–{alertasEnd} de {alertas.length}
+                </div>
+
+                <div className={styles.pageControls}>
+                  <button
+                    type="button"
+                    onClick={() => setAlertasPage(p => Math.max(1, p - 1))}
+                    disabled={alertasPage === 1}
+                    className={styles.pageBtn}
+                  >
+                    Anterior
+                  </button>
+                  <span className={styles.pageNumber}>
+                    Página {alertasPage} de {alertasTotalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAlertasPage(p => Math.min(alertasTotalPages, p + 1))}
+                    disabled={alertasPage === alertasTotalPages}
+                    className={styles.pageBtn}
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </section>
 
-        <section className={styles.section}>
-          <h2>Atividades Recentes</h2>
-          <DataTable<ActivityItem>
-            columns={[
-              { key: 'tipo', label: 'Tipo' },
-              { key: 'produtoCodigo', label: 'Código', className: 'mono' },
-              { key: 'produtoNome', label: 'Produto' },
-              {
-                key: 'quantidade',
-                label: 'Quantidade',
-                className: 'mono',
-                align: 'right',
-              },
-              {
-                key: 'de',
-                label: 'Origem',
-                render: (item) => item.de ?? '—',
-              },
-              { key: 'para', label: 'Destino' },
-              {
-                key: 'data',
-                label: 'Data',
-                className: 'mono',
-                render: (item) => format(parseISO(item.data), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
-              },
-              { key: 'usuario', label: 'Usuário' },
-            ]}
-            data={recentActivity}
-          />
-        </section>
       </div>
     </div>
   );

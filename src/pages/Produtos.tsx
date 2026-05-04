@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useWmsStore } from '../store/wmsStore';
 import { UNIDADE_LABELS, type Unidade } from '../types';
 import { Header } from '../components/layout/Header';
@@ -27,6 +27,7 @@ interface ProdutoDisplay {
 }
 
 const UNIDADES = ['cx', 'bag', 'un', 'lt', 'kg'] as const;
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 
 export function Produtos() {
   const produtos = useWmsStore(s => s.produtos);
@@ -44,6 +45,9 @@ export function Produtos() {
   });
   const [errorMsg, setErrorMsg] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState('');
 
   const produtosAtivos = useMemo(() => {
     return produtos
@@ -59,6 +63,33 @@ export function Produtos() {
       }))
       .sort((a, b) => a.codigo.localeCompare(b.codigo));
   }, [produtos]);
+
+  const produtosFiltrados = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return produtosAtivos;
+    return produtosAtivos.filter(p =>
+      p.codigo.toLowerCase().includes(q) ||
+      p.nome.toLowerCase().includes(q)
+    );
+  }, [produtosAtivos, search]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const totalPages = Math.max(1, Math.ceil(produtosFiltrados.length / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const paginatedProdutos = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return produtosFiltrados.slice(start, start + pageSize);
+  }, [produtosFiltrados, currentPage, pageSize]);
+
+  const startItem = produtosFiltrados.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, produtosFiltrados.length);
 
   const openNewModal = () => {
     setEditingId(null);
@@ -129,6 +160,15 @@ export function Produtos() {
           <Button variant="primary" onClick={openNewModal}>
             + Novo Produto
           </Button>
+          <div className={styles.searchWrapper}>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por código ou nome..."
+              className={styles.searchInput}
+            />
+          </div>
         </div>
 
         <div className={styles.tableContainer}>
@@ -181,8 +221,55 @@ export function Produtos() {
                 ),
               },
             ]}
-            data={produtosAtivos}
+            data={paginatedProdutos}
           />
+
+          {produtosFiltrados.length > 0 && (
+            <div className={styles.pagination}>
+              <div className={styles.pageSize}>
+                <label htmlFor="pageSize">Itens por página:</label>
+                <select
+                  id="pageSize"
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className={styles.pageSizeSelect}
+                >
+                  {PAGE_SIZE_OPTIONS.map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.pageInfo}>
+                {startItem}–{endItem} de {produtosFiltrados.length}
+              </div>
+
+              <div className={styles.pageControls}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className={styles.pageBtn}
+                >
+                  Anterior
+                </button>
+                <span className={styles.pageNumber}>
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className={styles.pageBtn}
+                >
+                  Próxima
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -214,7 +301,7 @@ export function Produtos() {
                 type="text"
                 value={form.nome}
                 onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                placeholder="Ex: Arroz Integral"
+                placeholder="Ex: Ovomaltine 400g"
                 className={styles.input}
               />
             </div>

@@ -95,8 +95,8 @@
 
 .navItem.active {
   background-color: var(--bg);
-  color: var(--primary);
-  border-left-color: var(--primary);
+  color: var(--danger);
+  border-left-color: var(--danger);
 }
 
 .section {
@@ -165,8 +165,8 @@
 
 .submenuItem.active {
   background-color: var(--bg);
-  color: var(--primary);
-  border-left-color: var(--primary);
+  color: var(--danger);
+  border-left-color: var(--danger);
 }
 
 .footer {
@@ -206,6 +206,14 @@
   border-color: color-mix(in srgb, var(--danger) 30%, var(--border));
 }
 
+.version {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  padding-top: var(--space-1);
+}
+
 /* ================================ */
 /*           COLLAPSED STATE        */
 /* ================================ */
@@ -235,7 +243,8 @@
 
 .collapsed .navItem.active,
 .collapsed .submenuItem.active {
-  border-right-color: var(--primary);
+  border-right-color: var(--danger);
+  color: var(--danger);
 }
 
 .collapsed .navItem > span:not([class*="badge"]),
@@ -243,7 +252,8 @@
 .collapsed .chevron,
 .collapsed .submenu,
 .collapsed .userEmail,
-.collapsed .logoutBtn span {
+.collapsed .logoutBtn span,
+.collapsed .version {
   display: none;
 }
 

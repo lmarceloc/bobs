@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useWmsStore } from '../store/wmsStore';
 import { UNIDADE_LABELS, type Unidade } from '../types';
 import { Header } from '../components/layout/Header';
@@ -15,6 +17,7 @@ interface EstoqueItem {
   categoria: 'seco' | 'molhado';
   unidade: string;
   quantidade: number;
+  ultimaEntrada: string | null;
 }
 
 const KIOSQUES = [
@@ -36,8 +39,22 @@ export function Quiosque() {
   const navigate = useNavigate();
   const produtos = useWmsStore(s => s.produtos);
   const estoque = useWmsStore(s => s.estoque);
+  const movimentacoes = useWmsStore(s => s.movimentacoes);
 
   const localName = (SLUG_MAP[slug] || 'Mariano') as typeof KIOSQUES[number]['nome'];
+
+  const ultimaEntradaPorProduto = useMemo(() => {
+    const map = new Map<string, string>();
+    movimentacoes
+      .filter(m => m.tipo === 'transferencia' && m.para === localName)
+      .forEach(m => {
+        const existente = map.get(m.produtoId);
+        if (!existente || new Date(m.data) > new Date(existente)) {
+          map.set(m.produtoId, m.data);
+        }
+      });
+    return map;
+  }, [movimentacoes, localName]);
 
   const items = useMemo((): EstoqueItem[] => {
     return produtos
@@ -52,11 +69,12 @@ export function Quiosque() {
           categoria: p.categoria,
           unidade: p.unidade,
           quantidade: estoqueKiosk?.quantidade ?? 0,
+          ultimaEntrada: ultimaEntradaPorProduto.get(p.id) ?? null,
         };
       })
       .filter(item => item.quantidade > 0)
       .sort((a, b) => a.codigo.localeCompare(b.codigo));
-  }, [produtos, estoque, localName]);
+  }, [produtos, estoque, localName, ultimaEntradaPorProduto]);
 
   const stats = useMemo(() => {
     const total = items.reduce((sum, item) => sum + item.quantidade, 0);
@@ -112,6 +130,16 @@ export function Quiosque() {
                 align: 'right',
                 width: '100px',
                 render: item => String(item.quantidade),
+              },
+              {
+                key: 'ultimaEntrada',
+                label: 'Data',
+                className: 'mono',
+                width: '200px',
+                render: item =>
+                  item.ultimaEntrada
+                    ? format(parseISO(item.ultimaEntrada), 'dd/MM/yyyy HH:mm', { locale: ptBR })
+                    : '—',
               },
             ]}
             data={items}

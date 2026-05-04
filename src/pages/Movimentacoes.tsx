@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useWmsStore } from '../store/wmsStore';
@@ -7,6 +7,8 @@ import { Button } from '../components/ui/Button';
 import { DataTable } from '../components/ui/DataTable';
 import { Badge } from '../components/ui/Badge';
 import styles from './Movimentacoes.module.css';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 
 interface MovimentacaoDisplay {
   id: string;
@@ -23,6 +25,8 @@ interface MovimentacaoDisplay {
 
 export function Movimentacoes() {
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'entrada_cd' | 'transferencia'>('todos');
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const produtos = useWmsStore(s => s.produtos);
   const movimentacoes = useWmsStore(s => s.movimentacoes);
 
@@ -57,6 +61,24 @@ export function Movimentacoes() {
       transferencias: movimentacoesDisplay.filter(m => m.tipo === 'transferencia').length,
     };
   }, [movimentacoesDisplay]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filtroTipo]);
+
+  const totalPages = Math.max(1, Math.ceil(movimentacoesDisplay.length / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const paginatedMovimentacoes = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return movimentacoesDisplay.slice(start, start + pageSize);
+  }, [movimentacoesDisplay, currentPage, pageSize]);
+
+  const startItem = movimentacoesDisplay.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, movimentacoesDisplay.length);
 
   const exportCSV = () => {
     const headers = ['Data', 'Tipo', 'Código Produto', 'Produto', 'Quantidade', 'De', 'Para', 'Usuário', 'Observação'];
@@ -172,8 +194,55 @@ export function Movimentacoes() {
                   ) : '—',
                 },
               ]}
-              data={movimentacoesDisplay}
+              data={paginatedMovimentacoes}
             />
+          )}
+
+          {movimentacoesDisplay.length > 0 && (
+            <div className={styles.pagination}>
+              <div className={styles.pageSize}>
+                <label htmlFor="pageSize">Itens por página:</label>
+                <select
+                  id="pageSize"
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className={styles.pageSizeSelect}
+                >
+                  {PAGE_SIZE_OPTIONS.map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.pageInfo}>
+                {startItem}–{endItem} de {movimentacoesDisplay.length}
+              </div>
+
+              <div className={styles.pageControls}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className={styles.pageBtn}
+                >
+                  Anterior
+                </button>
+                <span className={styles.pageNumber}>
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className={styles.pageBtn}
+                >
+                  Próxima
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

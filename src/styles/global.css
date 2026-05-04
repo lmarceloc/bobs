@@ -66,6 +66,7 @@ small {
   font-size: 0.95em;
   font-weight: 500;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 /* Links */

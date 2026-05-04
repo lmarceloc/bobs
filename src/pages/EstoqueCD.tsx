@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useWmsStore } from '../store/wmsStore';
 import { UNIDADE_LABELS, type Unidade } from '../types';
 import { Header } from '../components/layout/Header';
 import { DataTable } from '../components/ui/DataTable';
 import { Badge } from '../components/ui/Badge';
 import styles from './EstoqueCD.module.css';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 
 interface EstoqueItem {
   id: string;
@@ -20,6 +22,10 @@ interface EstoqueItem {
 
 export function EstoqueCD() {
   const [filtro, setFiltro] = useState<'todos' | 'seco' | 'molhado'>('todos');
+  const [statusFiltro, setStatusFiltro] = useState<'todos' | 'critico' | 'baixo'>('todos');
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState('');
   const produtos = useWmsStore(s => s.produtos);
   const estoque = useWmsStore(s => s.estoque);
 
@@ -62,6 +68,33 @@ export function EstoqueCD() {
     };
   }, [items]);
 
+  const itemsFiltrados = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return items.filter(i => {
+      if (statusFiltro !== 'todos' && i.status !== statusFiltro) return false;
+      if (q && !i.codigo.toLowerCase().includes(q) && !i.nome.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [items, search, statusFiltro]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filtro, search, statusFiltro]);
+
+  const totalPages = Math.max(1, Math.ceil(itemsFiltrados.length / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return itemsFiltrados.slice(start, start + pageSize);
+  }, [itemsFiltrados, currentPage, pageSize]);
+
+  const startItem = itemsFiltrados.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, itemsFiltrados.length);
+
   const getStatusBadge = (status: 'ok' | 'baixo' | 'critico') => {
     const variantMap = { ok: 'success', baixo: 'danger', critico: 'danger' } as const;
     const labelMap = { ok: 'OK', baixo: 'Baixo', critico: 'Crítico' } as const;
@@ -90,16 +123,47 @@ export function EstoqueCD() {
               ))}
             </div>
           </div>
+          <div className={styles.searchWrapper}>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por código ou nome..."
+              className={styles.searchInput}
+            />
+          </div>
           <div className={styles.alerts}>
             {stats.criticos > 0 && (
-              <span className={styles.alertBadge} style={{ backgroundColor: 'var(--danger)' }}>
+              <button
+                type="button"
+                onClick={() => setStatusFiltro(statusFiltro === 'critico' ? 'todos' : 'critico')}
+                className={`${styles.alertBadge} ${styles.critico} ${statusFiltro === 'critico' ? styles.alertActive : ''}`}
+                aria-pressed={statusFiltro === 'critico'}
+                title="Mostrar apenas itens críticos"
+              >
                 {stats.criticos} Críticos
-              </span>
+              </button>
             )}
             {stats.baixos > 0 && (
-              <span className={styles.alertBadge} style={{ backgroundColor: 'var(--danger)' }}>
+              <button
+                type="button"
+                onClick={() => setStatusFiltro(statusFiltro === 'baixo' ? 'todos' : 'baixo')}
+                className={`${styles.alertBadge} ${styles.baixo} ${statusFiltro === 'baixo' ? styles.alertActive : ''}`}
+                aria-pressed={statusFiltro === 'baixo'}
+                title="Mostrar apenas itens baixos"
+              >
                 {stats.baixos} Baixos
-              </span>
+              </button>
+            )}
+            {statusFiltro !== 'todos' && (
+              <button
+                type="button"
+                onClick={() => setStatusFiltro('todos')}
+                className={styles.clearAlert}
+                title="Limpar filtro de status"
+              >
+                ✕ Limpar
+              </button>
             )}
           </div>
         </div>
@@ -148,8 +212,55 @@ export function EstoqueCD() {
                 render: item => getStatusBadge(item.status),
               },
             ]}
-            data={items}
+            data={paginatedItems}
           />
+
+          {itemsFiltrados.length > 0 && (
+            <div className={styles.pagination}>
+              <div className={styles.pageSize}>
+                <label htmlFor="pageSize">Itens por página:</label>
+                <select
+                  id="pageSize"
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className={styles.pageSizeSelect}
+                >
+                  {PAGE_SIZE_OPTIONS.map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.pageInfo}>
+                {startItem}–{endItem} de {itemsFiltrados.length}
+              </div>
+
+              <div className={styles.pageControls}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className={styles.pageBtn}
+                >
+                  Anterior
+                </button>
+                <span className={styles.pageNumber}>
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className={styles.pageBtn}
+                >
+                  Próxima
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
