@@ -68,6 +68,7 @@ interface WmsState {
   transferirParaQuiosque: (para: Local, linhas: LineItem[], observacao?: string) => Promise<void>;
   adicionarProduto: (dados: Omit<Produto, 'id' | 'ativo' | 'criadoEm'>) => Promise<void>;
   editarProduto: (id: string, dados: Partial<Omit<Produto, 'id' | 'criadoEm'>>) => Promise<void>;
+  ajustarEstoque: (produtoId: string, local: Local, quantidade: number) => Promise<void>;
 }
 
 export const useWmsStore = create<WmsState>()(
@@ -370,6 +371,40 @@ export const useWmsStore = create<WmsState>()(
           produtos: state.produtos.map(p =>
             p.id === id ? { ...p, ...dados } : p
           ),
+        }));
+      },
+
+      ajustarEstoque: async (produtoId: string, local: Local, quantidade: number) => {
+        if (quantidade < 0) {
+          throw new Error('Quantidade não pode ser negativa.');
+        }
+
+        const { estoque } = get();
+        const existed = estoque.some(e => e.produtoId === produtoId && e.local === local);
+        const now = new Date().toISOString();
+
+        if (existed) {
+          const { error } = await supabase
+            .from('estoque')
+            .update({ quantidade, updated_at: now })
+            .eq('produto_id', produtoId)
+            .eq('local', local);
+          if (error) throw new Error(error.message || 'Erro ao atualizar estoque.');
+        } else {
+          const { error } = await supabase
+            .from('estoque')
+            .insert([{ produto_id: produtoId, local, quantidade }]);
+          if (error) throw new Error(error.message || 'Erro ao inserir estoque.');
+        }
+
+        set(state => ({
+          estoque: existed
+            ? state.estoque.map(e =>
+                e.produtoId === produtoId && e.local === local
+                  ? { ...e, quantidade }
+                  : e
+              )
+            : [...state.estoque, { produtoId, local, quantidade }],
         }));
       },
     }),
