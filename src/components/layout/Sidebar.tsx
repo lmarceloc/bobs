@@ -161,7 +161,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <LogOut size={ICON_SIZE} />
           <span>Sair</span>
         </button>
-        <div className={styles.version}>V1.1.0</div>
+        <div className={styles.version}>V1.2.0</div>
       </div>
     </aside>
   );
